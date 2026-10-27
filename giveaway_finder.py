@@ -52,8 +52,11 @@ DEFAULT_CONFIG = {
     "results_per_seed": 20,
     "proxy_country": "DE",
     "allowed_countries": ["DE"],
-    "apify_input_extra": {"videoSearchSorting": "LATEST"},
+    # {"videoSearchSorting": "LATEST"} would be better, but as of October 2026 the actor
+    # returns no posts with it (or with videoSearchDateFilter).
+    "apify_input_extra": {},
     "max_cost_per_run_usd": 0.5,
+    "monthly_budget_usd": None,
     "max_age_days": 14,
     "assumed_duration_days": 7,
     "comment_decay_hours": 36,
@@ -102,7 +105,12 @@ ENDED_RE = re.compile(
 
 SCAM_FLAGS = [
     (re.compile(r"link\s+in\s+(?:der\s+|meiner\s+)?bio", re.I), "asks you to click a bio link"),
-    (re.compile(r"\bdm\b|direktnachricht|schreibt?\s+mir|privatnachricht", re.I), "asks you to DM"),
+    # Only when *you* are asked to write. "Der Gewinner wird per DM benachrichtigt" is in almost
+    # every legitimate giveaway, and "dm" is also a drugstore chain ("dm-Gutschein").
+    (re.compile(r"schreib(?:t|e)?\s+(?:mir|uns)\b|meldet?\s+(?:dich|euch)\s+(?:per|via|bei)\b"
+                r"|(?:schick|send)(?:e|t)?\s+(?:mir|uns)\s+(?:eine?\s+)?(?:dm|(?:direkt|privat)?nachricht)"
+                r"|(?:\bdm|direktnachricht|privatnachricht)\s+an\s+(?:mich|uns)\b|\bdm\s+(?:me|us)\b"
+                r"|send\s+(?:me|us)\s+an?\s+(?:dm|message)", re.I), "asks you to DM"),
     (re.compile(r"whatsapp|telegram", re.I), "moves you to WhatsApp/Telegram"),
     (
         re.compile(r"versandkosten|\b(?:be)?zahl\w*(?:\s+\S+){0,3}?\s+versand|gebühr|\bfees?\b", re.I),
@@ -116,11 +124,15 @@ WEEKDAYS = (
     r"|monday|tuesday|wednesday|thursday|friday|saturday|sunday"
     r"|mon|tue|wed|thu|fri|sat|sun|mo|di|mi|do|fr|sa|so"
 )
+MONTHS = {"januar": 1, "jänner": 1, "februar": 2, "märz": 3, "maerz": 3, "april": 4, "mai": 5, "juni": 6,
+          "juli": 7, "august": 8, "september": 9, "oktober": 10, "november": 11, "dezember": 12}
 DEADLINE_RE = re.compile(
-    r"\b(?:läuft\s+bis|bis|endet|ende|teilnahmeschluss|einsendeschluss|deadline|until|ends?)\b"
+    r"\b(?:läuft\s+bis|bis|endet|gewinnspielende|aktionsende|ende|teilnahmeschluss|einsendeschluss"
+    r"|deadline|until|ends?)\b"
     r"\s*:?\s*(?:(?:zum|am|on|einschließlich|einschliesslich)\s+)?"
-    rf"(?:(?:{WEEKDAYS})\b\.?,?\s*)?"
-    r"(\d{1,2})\.(\d{1,2})(?!\d)(?:\.(?:(\d{4}|\d{2})(?!\d))?)?",
+    r"(?:(?:" + WEEKDAYS + r")\b\.?,?\s*)?(?:den\s+)?[\[(]?"  # "Sonntag, den …", "[01.11.2026]"
+    r"(?:(?P<day>\d{1,2})\.(?P<month>\d{1,2})(?!\d)(?:\.(?:(?P<year>\d{4}|\d{2})(?!\d))?)?"
+    r"|(?P<day2>\d{1,2})\.?\s*(?P<month_name>" + "|".join(MONTHS) + r")\b(?:\s+(?P<year2>\d{4})(?!\d))?)",
     re.IGNORECASE,
 )
 
@@ -130,7 +142,14 @@ PRIZE_RES = [
     re.compile(_COUNT + r"\s?[x×](?=\s)", re.I),
     re.compile(_COUNT + r"\s+(?:gewinner|glückliche|winners?|personen|leute)", re.I),
     re.compile(r"(?:verlosen\s+wir|verlose|verlosen|giving\s+away)\s+" + _COUNT, re.I),
+    re.compile(r"\b(?:1|eine?[ns]?)\s+von\s+" + _COUNT, re.I),  # "Chance auf 1 von 6 Paketen"
 ]
+# "Ich verlose 11 Produkte an eine glückliche Person" is one prize, not eleven.
+SINGLE_WINNER_RE = re.compile(
+    r"\ban\s+(?:eine[nrm]?|1)\s+(?:glückliche[nr]?\s+)?(?:person|gewinner(?:in)?|follower(?:in)?)\b"
+    r"|\ban\s+(?:eine[nrm]?|1)\s+von\s+euch\b|\bone\s+lucky\s+winner\b",
+    re.IGNORECASE,
+)
 MAX_PRIZES = 20
 
 
@@ -285,10 +304,13 @@ def scam_flags(text: str) -> list[str]:
 
 
 def parse_deadline(text: str, created: datetime) -> datetime | None:
-    """First "bis 02.11." style date, as 23:59 Berlin time on that day."""
+    """First "bis 02.11." / "endet am 8. November" style date, as 23:59 Berlin time on that day."""
     posted = created.astimezone(BERLIN)
     for m in DEADLINE_RE.finditer(text):
-        day, month, year = int(m.group(1)), int(m.group(2)), m.group(3)
+        if m["day"]:
+            day, month, year = int(m["day"]), int(m["month"]), m["year"]
+        else:
+            day, month, year = int(m["day2"]), MONTHS[m["month_name"].lower()], m["year2"]
         if year:
             year = int(year) + (2000 if len(year) == 2 else 0)
         else:
@@ -301,6 +323,8 @@ def parse_deadline(text: str, created: datetime) -> datetime | None:
 
 
 def count_prizes(text: str) -> int:
+    if SINGLE_WINNER_RE.search(text):
+        return 1
     counts = [int(m.group(1)) for rx in PRIZE_RES for m in rx.finditer(text)]
     counts = [n for n in counts if 1 <= n <= MAX_PRIZES]
     return max(counts, default=1)
@@ -764,19 +788,50 @@ def build_run_input(cfg: dict) -> dict:
     return run_input
 
 
-def _run_field(run, snake: str, camel: str):
-    """apify-client 3.x returns a pydantic Run; older code paths return dicts."""
-    if isinstance(run, dict):
-        return run.get(camel, run.get(snake))
-    return getattr(run, snake, None)
+def _field(obj, snake: str, camel: str):
+    """apify-client 3.x returns pydantic models; older code paths return camelCase dicts."""
+    if obj is None:
+        return None
+    if isinstance(obj, dict):
+        return obj.get(camel, obj.get(snake))
+    return getattr(obj, snake, None)
 
 
-def fetch_items(cfg: dict, token: str) -> list[dict]:
+def within_budget(client, cfg: dict) -> bool:
+    """Check this Apify billing cycle's usage. A run costs at most
+    max_cost_per_run_usd, so running only while usage + cap stays within the
+    plan's monthly limit (or monthly_budget_usd, if lower) never exceeds it."""
+    try:
+        account = client.user().limits()
+    except Exception as exc:  # e.g. a scoped token without access to account data
+        log(f"Warning: could not read the Apify usage ({exc}); relying on the per-run cost cap.")
+        return True
+    used = _field(_field(account, "current", "current"), "monthly_usage_usd", "monthlyUsageUsd") or 0.0
+    plan_limit = _field(_field(account, "limits", "limits"), "max_monthly_usage_usd", "maxMonthlyUsageUsd")
+    budgets = [b for b in (plan_limit, cfg.get("monthly_budget_usd")) if b is not None]
+    if not budgets:
+        return True
+    budget, cap = min(budgets), cfg["max_cost_per_run_usd"] or 0
+    log(f"Apify usage this billing cycle: ${used:.2f} of ${budget:.2f}.")
+    if used + cap <= budget:
+        return True
+    resets = _field(_field(account, "monthly_usage_cycle", "monthlyUsageCycle"), "end_at", "endAt")
+    if isinstance(resets, datetime):
+        resets = f"{resets.astimezone(BERLIN):%d.%m.%Y}"
+    log(f"Skipping this run: it may cost up to ${cap:.2f}, which could exceed ${budget:.2f}. "
+        f"The usage resets {'on ' + str(resets) if resets else 'with the next billing cycle'}.")
+    return False
+
+
+def fetch_items(cfg: dict, token: str) -> list[dict] | None:
+    """Run the actor and return its items, or None when the budget check says to skip."""
     from apify_client import ApifyClient  # imported here so --sample works without it
 
     max_items = (len(cfg["hashtags"]) + len(cfg["search_queries"])) * cfg["results_per_seed"]
     max_cost = cfg["max_cost_per_run_usd"]
     client = ApifyClient(token)
+    if not within_budget(client, cfg):
+        return None
     log(f"Running {cfg['apify_actor']} for up to {max_items} posts (cost cap ${max_cost})...")
     run = client.actor(cfg["apify_actor"]).call(
         run_input=build_run_input(cfg),
@@ -786,17 +841,19 @@ def fetch_items(cfg: dict, token: str) -> list[dict]:
     )
     if run is None:
         raise RuntimeError("Apify did not return a run.")
-    status = _run_field(run, "status", "status")
+    status = _field(run, "status", "status")
     status = getattr(status, "value", status)
-    dataset_id = _run_field(run, "default_dataset_id", "defaultDatasetId")
-    cost = _run_field(run, "usage_total_usd", "usageTotalUsd")
+    dataset_id = _field(run, "default_dataset_id", "defaultDatasetId")
+    cost = _field(run, "usage_total_usd", "usageTotalUsd")
     log(f"Apify run {status}, cost ${cost if cost is not None else '?'}.")
     if not dataset_id:
         raise RuntimeError(f"Apify run {status} has no dataset.")
     items = list(client.dataset(dataset_id).iterate_items())
+    if not items:  # a SUCCEEDED run can still have scraped nothing
+        message = _field(run, "status_message", "statusMessage")
+        raise RuntimeError(f"Apify run {status} returned no posts ({message}). Check the run in the Apify "
+                           "Console; if an input option stopped working, remove it from apify_input_extra.")
     if status != "SUCCEEDED":
-        if not items:
-            raise RuntimeError(f"Apify run {status} without results.")
         log(f"Warning: Apify run {status}; using the {len(items)} items it produced.")
     return items
 
@@ -858,6 +915,8 @@ def main(argv=None) -> int:
         if not token:
             sys.exit(MISSING_TOKEN_MESSAGE)
         items = fetch_items(cfg, token)
+        if items is None:
+            return 0
     if args.save_raw:
         save_json(Path(args.save_raw), items)
         log(f"Saved {len(items)} raw items to {args.save_raw}.")

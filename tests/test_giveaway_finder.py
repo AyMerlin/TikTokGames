@@ -89,6 +89,35 @@ class ParsingTests(unittest.TestCase):
         self.assertIsNone(gf.parse_deadline("Gewinnspiel bis 31.02.", created))
         self.assertIsNone(gf.parse_deadline("Gewinnspiel, kommentiert!", created))
 
+    def test_deadline_phrasings_seen_in_real_posts(self):
+        created = datetime(2026, 10, 25, tzinfo=timezone.utc)
+        cases = {
+            "Gewinnspielende: 01.11.2026 um 23:59 Uhr": date(2026, 11, 1),
+            "Teilnahmeschluss: [1.11.2026, 23:59 Uhr]": date(2026, 11, 1),
+            "Teilnahmeschluss: Sonntag, [01.11.2026] um 23:59 Uhr": date(2026, 11, 1),
+            "Das Gewinnspiel endet am Sonntag, den 08. November um 23:59 Uhr": date(2026, 11, 8),
+            "Das Gewinnspiel läuft bis Sonntag den 1. November 2026, 23:59 Uhr": date(2026, 11, 1),
+        }
+        for text, expected in cases.items():
+            with self.subTest(text=text):
+                self.assertEqual(gf.parse_deadline(text, created).date(), expected)
+
+    def test_prize_count_real_phrasings(self):
+        self.assertEqual(gf.count_prizes("Ich verlose 11 Produkte aus dem Adventskalender an eine glückliche Person!"), 1)
+        self.assertEqual(gf.count_prizes("Wir verlosen 3 Pakete an drei Gewinner"), 3)
+        self.assertEqual(gf.count_prizes("habt ihr jetzt die Chance 1 von 6 Probierpaketen zu gewinnen"), 6)
+
+    def test_dm_flag_only_when_you_are_asked_to_write(self):
+        for text in ["Der Gewinner wird per DM benachrichtigt.", "Die Gewinnerin wird per Direktnachricht kontaktiert",
+                     "und einen 50 € dm-Gutschein", "Teilnahmebedingungen: https://www.dm.de/social/x",
+                     "Diesen Beitrag per Privatnachricht an einen Freund weiterleiten"]:
+            with self.subTest(text=text):
+                self.assertNotIn("asks you to DM", gf.scam_flags(text))
+        for text in ["Schreib mir eine DM, um deinen Gewinn zu erhalten", "Melde dich per DM bei mir",
+                     "DM me to claim your prize", "Schickt uns eine Nachricht mit eurer Adresse"]:
+            with self.subTest(text=text):
+                self.assertIn("asks you to DM", gf.scam_flags(text))
+
     def test_prize_count(self):
         self.assertEqual(gf.count_prizes("Ich verlose 50€ Gutschein"), 1)
         self.assertEqual(gf.count_prizes("3x 100€ Gutschein"), 3)
@@ -438,9 +467,16 @@ class EndToEndTests(unittest.TestCase):
             def iterate_items(self):
                 return iter(items)
 
+        class User:
+            def limits(self):
+                return fake_account(1.2)
+
         class Client:
             def __init__(self, token):
                 calls["token"] = token
+
+            def user(self):
+                return User()
 
             def actor(self, actor_id):
                 calls["actor"] = actor_id
@@ -464,12 +500,13 @@ class EndToEndTests(unittest.TestCase):
         run_input = calls["run_input"]
         self.assertEqual(run_input["proxyCountryCode"], "DE")
         self.assertEqual(run_input["searchSection"], "/video")
-        self.assertEqual(run_input["videoSearchSorting"], "LATEST")
+        self.assertNotIn("videoSearchSorting", run_input)  # returns no posts as of October 2026
         self.assertEqual(run_input["resultsPerPage"], 20)
         self.assertFalse(run_input["shouldDownloadVideos"])
         self.assertEqual(calls["max_items"], 120)
         self.assertEqual(calls["max_total_charge_usd"], Decimal("0.5"))
         self.assertEqual(calls["run_timeout"], timedelta(minutes=20))
+        self.assertIn("Apify usage this billing cycle: $1.20 of $5.00.", err)
         self.assertIn("SUCCEEDED, cost $0.42", err)
         self.assertIn("3 are at or below", out)  # no channel configured -> printed
 
@@ -485,15 +522,87 @@ class EndToEndTests(unittest.TestCase):
             _, out, _ = self.run_main([])
         self.assertNotIn("🆕", out)
 
+    def test_run_without_posts_is_an_error(self):
+        client = mock.Mock()
+        client.user.return_value.limits.return_value = fake_account(0.0)
+        client.actor.return_value.call.return_value = {
+            "status": "SUCCEEDED", "statusMessage": "Scraped 0/3 search queries", "defaultDatasetId": "d"}
+        client.dataset.return_value.iterate_items.return_value = iter([])
+        fake_module = types.ModuleType("apify_client")
+        fake_module.ApifyClient = lambda token: client
+        with mock.patch.dict(sys.modules, {"apify_client": fake_module}), \
+                contextlib.redirect_stderr(io.StringIO()), self.assertRaises(RuntimeError) as ctx:
+            gf.fetch_items(gf.DEFAULT_CONFIG, "token")
+        self.assertIn("returned no posts (Scraped 0/3 search queries)", str(ctx.exception))
+
     def test_dict_run_with_camel_case_keys(self):
         run = {"status": "SUCCEEDED", "defaultDatasetId": "d", "usageTotalUsd": 0.1}
-        self.assertEqual(gf._run_field(run, "default_dataset_id", "defaultDatasetId"), "d")
-        self.assertEqual(gf._run_field(run, "usage_total_usd", "usageTotalUsd"), 0.1)
+        self.assertEqual(gf._field(run, "default_dataset_id", "defaultDatasetId"), "d")
+        self.assertEqual(gf._field(run, "usage_total_usd", "usageTotalUsd"), 0.1)
+        self.assertIsNone(gf._field(None, "a", "a"))
+
+
+def fake_account(used, limit=5.0):
+    """Shape of apify-client 3.x AccountLimits (client.user().limits())."""
+    return types.SimpleNamespace(
+        current=types.SimpleNamespace(monthly_usage_usd=used),
+        limits=types.SimpleNamespace(max_monthly_usage_usd=limit),
+        monthly_usage_cycle=types.SimpleNamespace(end_at=datetime(2026, 11, 26, 23, 59, tzinfo=timezone.utc)),
+    )
+
+
+class BudgetTests(unittest.TestCase):
+    def client(self, account=None, error=None):
+        user = mock.Mock()
+        user.limits.side_effect = error
+        user.limits.return_value = account
+        client = mock.Mock()
+        client.user.return_value = user
+        return client
+
+    def check(self, client, **cfg):
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err):
+            ok = gf.within_budget(client, {**gf.DEFAULT_CONFIG, **cfg})
+        return ok, err.getvalue()
+
+    def test_runs_while_usage_plus_cap_fits(self):
+        ok, log = self.check(self.client(fake_account(4.5)))
+        self.assertTrue(ok)
+        self.assertIn("$4.50 of $5.00", log)
+
+    def test_skips_when_a_run_could_exceed_the_plan(self):
+        ok, log = self.check(self.client(fake_account(4.51)))
+        self.assertFalse(ok)
+        self.assertIn("resets on 27.11.2026", log)  # 23:59 UTC is already the next day in Berlin
+
+    def test_own_budget_below_plan_limit(self):
+        self.assertFalse(self.check(self.client(fake_account(2.6)), monthly_budget_usd=3)[0])
+        self.assertTrue(self.check(self.client(fake_account(2.5)), monthly_budget_usd=3)[0])
+
+    def test_unreadable_usage_falls_back_to_cap(self):
+        ok, log = self.check(self.client(error=RuntimeError("insufficient permissions")))
+        self.assertTrue(ok)
+        self.assertIn("could not read the Apify usage", log)
 
 
 class ProjectFileTests(unittest.TestCase):
-    def test_config_json_matches_defaults(self):
-        self.assertEqual(gf.load_config(ROOT / "config.json"), gf.DEFAULT_CONFIG)
+    # Free-plan prices of clockworks/tiktok-scraper (October 2026): result and German proxy
+    # are charged per result, plus a fee per run.
+    PER_RESULT_USD = 0.0037 + 0.0013
+    PER_RUN_USD = 0.001
+
+    def test_config_json_keys_are_known(self):
+        cfg = json.loads((ROOT / "config.json").read_text(encoding="utf-8"))
+        self.assertEqual({k for k in cfg if not k.startswith("_")}, set(gf.DEFAULT_CONFIG))
+
+    def test_config_json_fits_the_free_plan(self):
+        cfg = gf.load_config(ROOT / "config.json")
+        posts = (len(cfg["hashtags"]) + len(cfg["search_queries"])) * cfg["results_per_seed"]
+        per_run = posts * self.PER_RESULT_USD + self.PER_RUN_USD
+        # 31 daily runs leave room for a few manual runs within the $5 free credit.
+        self.assertLess(31 * per_run, 4.0)
+        self.assertEqual(cfg["max_cost_per_run_usd"], 0.5)  # the actor rejects lower caps
 
     @unittest.skipUnless(__import__("importlib.util").util.find_spec("apify_client"), "apify-client not installed")
     def test_real_client_accepts_call_options(self):
