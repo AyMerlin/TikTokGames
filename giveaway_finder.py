@@ -139,11 +139,15 @@ DEADLINE_RE = re.compile(
 # A number that is not money, a percentage, a decimal or "50k".
 _COUNT = r"(?<![\d.,])(\d{1,3})(?!\d)(?!\s*(?:€|euro|eur\b|%|\$|k\b|tsd)|[.,]\d)"
 PRIZE_RES = [
-    re.compile(_COUNT + r"\s?[x×](?=\s)", re.I),
+    # "3x AirPods", but not "3x höhere Gewinnchance" or "3x kommentieren"
+    re.compile(_COUNT + r"\s?[x×](?=\s)(?!\s+(?:höher|größer|grösser|besser|mehr|extra|(?:gewinn)?chance|los"
+                        r"|teilnehm|kommentier|like|mitmach))", re.I),
     re.compile(_COUNT + r"\s+(?:gewinner|glückliche|winners?|personen|leute)", re.I),
     re.compile(r"(?:verlosen\s+wir|verlose|verlosen|giving\s+away)\s+" + _COUNT, re.I),
     re.compile(r"\b(?:1|eine?[ns]?)\s+von\s+" + _COUNT, re.I),  # "Chance auf 1 von 6 Paketen"
 ]
+# "Markiere 2 Personen" is an entry task, not two winners.
+TAG_TASK_BEFORE_RE = re.compile(r"(?:markier|tagg?|verlink|erwähn|mention)\w*(?:\s+\S+){0,2}\s*$", re.I)
 # "Ich verlose 11 Produkte an eine glückliche Person" is one prize, not eleven.
 SINGLE_WINNER_RE = re.compile(
     r"\ban\s+(?:eine[nrm]?|1)\s+(?:glückliche[nr]?\s+)?(?:person|gewinner(?:in)?|follower(?:in)?)\b"
@@ -325,9 +329,9 @@ def parse_deadline(text: str, created: datetime) -> datetime | None:
 def count_prizes(text: str) -> int:
     if SINGLE_WINNER_RE.search(text):
         return 1
-    counts = [int(m.group(1)) for rx in PRIZE_RES for m in rx.finditer(text)]
-    counts = [n for n in counts if 1 <= n <= MAX_PRIZES]
-    return max(counts, default=1)
+    counts = [int(m.group(1)) for rx in PRIZE_RES for m in rx.finditer(text)
+              if not TAG_TASK_BEFORE_RE.search(text[max(0, m.start() - 30):m.start()])]
+    return min(max((n for n in counts if n >= 1), default=1), MAX_PRIZES)
 
 
 def project_comments(comments: int, age_hours: float, expected_hours: float, tau: float) -> float:

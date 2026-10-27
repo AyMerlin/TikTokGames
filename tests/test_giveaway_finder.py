@@ -106,6 +106,13 @@ class ParsingTests(unittest.TestCase):
         self.assertEqual(gf.count_prizes("Ich verlose 11 Produkte aus dem Adventskalender an eine glückliche Person!"), 1)
         self.assertEqual(gf.count_prizes("Wir verlosen 3 Pakete an drei Gewinner"), 3)
         self.assertEqual(gf.count_prizes("habt ihr jetzt die Chance 1 von 6 Probierpaketen zu gewinnen"), 6)
+        self.assertEqual(gf.count_prizes("Wir verlosen 25 Stanley Cups – einer davon könnte bald dir gehören! "
+                                         "So machst du mit: Markiere 2 Personen in den Kommentaren"), 20)
+        self.assertEqual(gf.count_prizes("Gewinnspiel! Folge uns und markiere 2 Personen"), 1)
+        self.assertEqual(gf.count_prizes("Tagge mindestens 3 Leute, die das brauchen"), 1)
+        self.assertEqual(gf.count_prizes("ein XXL Beauty Paket verlosen. *3x höhere Gewinnchance: liken"), 1)
+        self.assertEqual(gf.count_prizes("Gewinnspiel! Du darfst 5x kommentieren"), 1)
+        self.assertEqual(gf.count_prizes("Gewinnspiel: 3 Personen gewinnen je ein Set. Markiere einen Freund"), 3)
 
     def test_dm_flag_only_when_you_are_asked_to_write(self):
         for text in ["Der Gewinner wird per DM benachrichtigt.", "Die Gewinnerin wird per Direktnachricht kontaktiert",
@@ -124,7 +131,7 @@ class ParsingTests(unittest.TestCase):
         self.assertEqual(gf.count_prizes("Verlosung 🎁 10 Personen gewinnen einen Gutschein"), 10)
         self.assertEqual(gf.count_prizes("Wir verlosen 50 Euro"), 1)
         self.assertEqual(gf.count_prizes("verlosen wir 2 Kinokarten"), 2)
-        self.assertEqual(gf.count_prizes("Wir verlosen 100 Tickets"), 1)  # above the cap of 20
+        self.assertEqual(gf.count_prizes("Wir verlosen 100 Tickets"), 20)  # capped at 20
 
     def test_winner_announced_is_not_ended(self):
         text = "GIVEAWAY Win a PS5! Follow + comment. Winner announced Friday"
