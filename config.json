@@ -1,0 +1,23 @@
+{
+  "_comment": "Tuning for giveaway_finder.py. Keys starting with _ are ignored; missing keys fall back to the built-in defaults. README.md explains each key.",
+  "apify_actor": "clockworks/tiktok-scraper",
+  "hashtags": ["gewinnspiel", "verlosung", "gewinnspielalarm"],
+  "search_queries": ["gewinnspiel", "verlosung", "giveaway deutschland"],
+  "_results_per_seed": "Posts per hashtag or search query - the main cost driver.",
+  "results_per_seed": 20,
+  "proxy_country": "DE",
+  "allowed_countries": ["DE"],
+  "_apify_input_extra": "Merged into the actor input last. Field names change - verify them on the actor's Input tab.",
+  "apify_input_extra": {"videoSearchSorting": "LATEST"},
+  "max_cost_per_run_usd": 0.5,
+  "max_age_days": 14,
+  "assumed_duration_days": 7,
+  "comment_decay_hours": 36,
+  "percentile_cutoff": 30,
+  "hard_max_per_prize": null,
+  "history_days": 30,
+  "min_history_for_percentile": 10,
+  "min_author_followers": 200,
+  "max_list_length": 30,
+  "only_new": false
+}

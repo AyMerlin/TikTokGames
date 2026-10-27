@@ -1,0 +1,53 @@
+name: Daily giveaway run
+
+on:
+  schedule:
+    # 06:37 UTC = 07:37 in Munich in winter, 08:37 in summer.
+    # Minute 37 on purpose: GitHub delays runs scheduled on the hour.
+    - cron: "37 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: giveaway-finder
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Find giveaways
+        env:
+          APIFY_TOKEN: ${{ secrets.APIFY_TOKEN }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+        run: python giveaway_finder.py
+
+      # Runs even if a delivery channel failed, so the state still advances.
+      - name: Commit state
+        if: ${{ !cancelled() }}
+        run: |
+          git config user.name "giveaway-bot"
+          git config user.email "giveaway-bot@users.noreply.github.com"
+          git add state/
+          if [ -f latest_report.md ]; then git add latest_report.md; fi
+          git diff --cached --quiet || {
+            git commit -m "Daily giveaway run $(date -u +%Y-%m-%d)"
+            git push
+          }
