@@ -18,11 +18,15 @@
   "max_age_days": 14,
   "assumed_duration_days": 7,
   "comment_decay_hours": 36,
-  "percentile_cutoff": 30,
+  "_percentile_cutoff": "Keep the cheapest X% of giveaways (by competitors per prize, against the last 30 days).",
+  "percentile_cutoff": 50,
   "hard_max_per_prize": null,
   "history_days": 30,
   "min_history_for_percentile": 10,
   "min_author_followers": 200,
   "max_list_length": 30,
-  "only_new": false
+  "only_new": false,
+  "_always_show_keywords": "Giveaways mentioning one of these are listed (marked 💎) even when their odds are above the cutoff. Whole words, any case; short endings match too (iPhones, Reisen).",
+  "always_show_keywords": ["iPhone", "iPad", "MacBook", "AirPods", "Apple Watch", "PS5", "PlayStation", "Nintendo Switch",
+                           "Xbox", "Steam Deck", "Dyson", "Thermomix", "E-Bike", "Reise", "Urlaub"]
 }

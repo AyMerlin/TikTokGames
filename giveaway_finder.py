@@ -67,6 +67,7 @@ DEFAULT_CONFIG = {
     "min_author_followers": 200,
     "max_list_length": 30,
     "only_new": False,
+    "always_show_keywords": [],
 }
 
 STAT_KEYS = ("fetched", "not_giveaway", "ended", "wrong_region", "too_old", "small_account", "active")
@@ -155,6 +156,7 @@ SINGLE_WINNER_RE = re.compile(
     re.IGNORECASE,
 )
 MAX_PRIZES = 20
+COMMENT_TASK_RE = re.compile(r"komment|comment", re.IGNORECASE)
 
 
 # --------------------------------------------------------------------------- #
@@ -307,6 +309,12 @@ def scam_flags(text: str) -> list[str]:
     return [label for rx, label in SCAM_FLAGS if rx.search(text)]
 
 
+def keyword_patterns(keywords) -> list[tuple[str, re.Pattern]]:
+    """Whole-word matches with short endings: "iPhone" finds "iPhones", "Reise" finds "Reisen"
+    but not "reisenthel"."""
+    return [(kw, re.compile(r"\b" + re.escape(kw) + r"\w{0,2}\b", re.I)) for kw in keywords or []]
+
+
 def parse_deadline(text: str, created: datetime) -> datetime | None:
     """First "bis 02.11." / "endet am 8. November" style date, as 23:59 Berlin time on that day."""
     posted = created.astimezone(BERLIN)
@@ -390,6 +398,7 @@ def normalize_items(items) -> list[dict]:
             "text": item.get("text") or "",
             "created": _create_time(item),
             "comments": _to_int(item.get("commentCount")),
+            "likes": _to_int(item.get("diggCount")),
             "plays": _to_int(item.get("playCount")),
             "url": item.get("webVideoUrl") or f"https://www.tiktok.com/@{author}/video/{post_id}",
             "author": author,
@@ -402,6 +411,7 @@ def normalize_items(items) -> list[dict]:
 def process_posts(posts: list[dict], cfg: dict, now: datetime) -> tuple[list[dict], dict]:
     stats = dict.fromkeys(STAT_KEYS, 0)
     stats["fetched"] = len(posts)
+    keywords = keyword_patterns(cfg.get("always_show_keywords"))
     active = []
     for post in posts:
         text = post["text"]
@@ -416,21 +426,28 @@ def process_posts(posts: list[dict], cfg: dict, now: datetime) -> tuple[list[dic
             stats["wrong_region"] += 1
             continue
         created = post["created"]
-        age_hours = max((now - created).total_seconds() / 3600, 1) if created else None
-        if age_hours is None or age_hours > cfg["max_age_days"] * 24:
+        if created is None:  # no timestamp, so the age can't be judged
+            stats["too_old"] += 1
+            continue
+        age_hours = max((now - created).total_seconds() / 3600, 1)
+        deadline = parse_deadline(text, created)
+        # Older posts stay while their deadline is still ahead (e.g. Advent calendar giveaways).
+        if age_hours > cfg["max_age_days"] * 24 and not (deadline and deadline >= now):
             stats["too_old"] += 1
             continue
         if post["followers"] is not None and _to_int(post["followers"]) < cfg["min_author_followers"]:
             stats["small_account"] += 1
             continue
-        deadline = parse_deadline(text, created)
         if deadline and deadline < now:
             stats["ended"] += 1
             continue
 
+        # Without a comment task people enter by liking/following, so likes count them better.
+        by_likes = not COMMENT_TASK_RE.search(text) and post["likes"] > post["comments"]
         expected_hours = ((deadline - created).total_seconds() / 3600 if deadline
                           else cfg["assumed_duration_days"] * 24)
-        projected = project_comments(post["comments"], age_hours, expected_hours, cfg["comment_decay_hours"])
+        projected = project_comments(post["likes"] if by_likes else post["comments"], age_hours,
+                                     expected_hours, cfg["comment_decay_hours"])
         prizes = count_prizes(text)
         per_prize = projected / prizes
         active.append({
@@ -439,9 +456,11 @@ def process_posts(posts: list[dict], cfg: dict, now: datetime) -> tuple[list[dic
             "age_hours": age_hours,
             "deadline": deadline,
             "prizes": prizes,
+            "entry_signal": "likes" if by_likes else "comments",
             "projected": projected,
             "per_prize": per_prize,
             "chance": 1 / per_prize,
+            "high_value": next((kw for kw, rx in keywords if rx.search(text)), ""),
             "flags": scam_flags(text),
         })
     stats["active"] = len(active)
@@ -502,8 +521,13 @@ def compute_cutoff(values: list[float], cfg: dict) -> tuple[float | None, str]:
     return cutoff, method
 
 
+def below_cutoff(g: dict, cutoff: float | None) -> bool:
+    return cutoff is None or round(g["per_prize"], 2) <= cutoff + 1e-9
+
+
 def select_giveaways(active: list[dict], cutoff: float | None, cfg: dict, seen: dict) -> list[dict]:
-    kept = [g for g in active if cutoff is None or round(g["per_prize"], 2) <= cutoff + 1e-9]
+    """Giveaways at or below the cutoff, plus high-value ones (always_show_keywords) at any odds."""
+    kept = [g for g in active if below_cutoff(g, cutoff) or g.get("high_value")]
     if cfg["only_new"]:
         kept = [g for g in kept if g["id"] not in seen]
     return sorted(kept, key=lambda g: (-g["chance"], g["id"]))
@@ -566,12 +590,16 @@ class Report:
 def make_entry(g: dict, is_new: bool) -> Entry:
     title = ("🆕 " if is_new else "") + f"@{g['author']}" + (" ✔️" if g["verified"] else "")
     title += f" · {plural(g['prizes'], 'prize')}"
+    if g.get("high_value"):
+        title += f" · 💎 {g['high_value']}"
     if g["region"]:
         title += f" · {g['region']}"
     competitors = max(1, round(g["per_prize"]))
     ends = f"ends {g['deadline']:%d.%m.}" if g["deadline"] else "no date found"
+    entries = (f"{plural(g['likes'], 'like')} now (no comment needed)" if g.get("entry_signal") == "likes"
+               else f"{plural(g['comments'], 'comment')} now")
     stats = (f"~{plural(competitors, 'competitor')} per prize (≈1 in {fmt_int(competitors)})"
-             f" · {plural(g['comments'], 'comment')} now · {ends} · posted {age_label(g['age_hours'])}")
+             f" · {entries} · {ends} · posted {age_label(g['age_hours'])}")
     warning = "⚠️ " + "; ".join(g["flags"]) if g["flags"] else ""
     return Entry(title, stats, short_caption(g["text"]), warning, g["url"])
 
@@ -585,7 +613,12 @@ def build_report(today: date, stats: dict, selected: list[dict], cfg: dict,
     if cutoff is None:
         parts.append(f"{n} listed - {method}.")
     else:
-        parts.append(f"{n} {'is' if n == 1 else 'are'} at or below {fmt_int(cutoff)} competitors per prize - {method}.")
+        extra = sum(not below_cutoff(g, cutoff) for g in selected)
+        below = n - extra
+        parts.append(f"{below} {'is' if below == 1 else 'are'} at or below {fmt_int(cutoff)} competitors per prize"
+                     f" - {method}.")
+        if extra:
+            parts.append(f"Plus {plural(extra, 'high-value giveaway')} (💎) with worse odds.")
     shown = selected[: cfg["max_list_length"]]
     return Report(
         date=today.strftime("%d.%m.%Y"),

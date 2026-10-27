@@ -230,7 +230,7 @@ class OutputTests(unittest.TestCase):
         cfg = {**gf.DEFAULT_CONFIG, "max_list_length": max_len}
         stats = {**dict.fromkeys(gf.STAT_KEYS, 0), "active": n, "fetched": 3 * n, "wrong_region": wrong_region}
         selected = [make_giveaway(i) for i in range(1, n + 1)]
-        return gf.build_report(date(2026, 10, 27), stats, selected, cfg, 81.6, "the median", {"2": "2026-10-20"})
+        return gf.build_report(date(2026, 10, 27), stats, selected, cfg, 100.0, "the median", {"2": "2026-10-20"})
 
     def assert_html_ok(self, text):
         checker = TagChecker()
@@ -260,7 +260,7 @@ class OutputTests(unittest.TestCase):
     def test_summary_and_footer(self):
         r = self.report(35, wrong_region=2)
         self.assertEqual(r.summary, "35 active giveaways found (105 posts checked). 2 skipped because they're "
-                                    "limited to other countries. 35 are at or below 82 competitors per prize - the median.")
+                                    "limited to other countries. 35 are at or below 100 competitors per prize - the median.")
         self.assertEqual(r.footer, "…and 5 more (raise max_list_length to see them).")
         self.assertNotIn("skipped", self.report(3).summary)
         self.assertEqual(self.report(0).footer, "Nothing below the cutoff today.")
@@ -341,6 +341,64 @@ class DeliveryTests(unittest.TestCase):
         body = sent[0].data.decode()
         self.assertIn("parse_mode=HTML", body)
         self.assertIn("disable_web_page_preview=true", body)
+
+
+class SelectionTests(unittest.TestCase):
+    NOW = datetime(2026, 10, 27, 12, tzinfo=timezone.utc)
+
+    def run_pipeline(self, *items, **cfg):
+        raw = [{"id": str(i), "createTime": int((self.NOW - timedelta(days=days)).timestamp()), "text": text,
+                "commentCount": comments, "diggCount": likes, "authorMeta": {"name": f"u{i}", "fans": 5000}}
+               for i, (text, days, comments, likes) in enumerate(items, 1)]
+        return gf.process_posts(gf.normalize_items(raw), {**gf.DEFAULT_CONFIG, **cfg}, self.NOW)
+
+    def test_old_post_with_future_deadline_is_kept(self):
+        active, stats = self.run_pipeline(
+            ("Adventskalender Gewinnspiel! Kommentiert. Teilnahmeschluss: 24.12.2026", 20, 300, 900),
+            ("Gewinnspiel! Kommentiert und folgt", 20, 300, 900),
+            ("Gewinnspiel bis 20.10.2026! Kommentiert", 20, 300, 900))
+        self.assertEqual([g["id"] for g in active], ["1"])
+        self.assertEqual(stats["too_old"], 2)
+
+    def test_likes_count_when_no_comment_is_needed(self):
+        active, _ = self.run_pipeline(
+            ("Gewinnspiel! Folge mir und like das Video", 6, 615, 3328),
+            ("Gewinnspiel! Folge mir und kommentiere", 6, 615, 3328),
+            ("Gewinnspiel! Folge mir und teile das Video", 6, 615, 100))
+        by_id = {g["id"]: g for g in active}
+        self.assertEqual(by_id["1"]["entry_signal"], "likes")
+        self.assertAlmostEqual(by_id["1"]["projected"], 3328 * (1 - 2.718281828459045 ** (-168 / 36))
+                               / (1 - 2.718281828459045 ** (-144 / 36)), places=3)
+        self.assertEqual(by_id["2"]["entry_signal"], "comments")
+        self.assertEqual(by_id["3"]["entry_signal"], "comments")  # fewer likes than comments
+        entry = gf.make_entry(by_id["1"], is_new=False)
+        self.assertIn("3.328 likes now (no comment needed)", entry.stats)
+
+    def test_keyword_matching(self):
+        patterns = dict(gf.keyword_patterns(["Reise", "iPhone", "PS5", "Apple Watch"]))
+        self.assertTrue(patterns["Reise"].search("Wir verlosen eine Reise nach Rom"))
+        self.assertTrue(patterns["Reise"].search("zwei Reisen"))
+        self.assertFalse(patterns["Reise"].search("ein reisenthel Mutti-Korb"))
+        self.assertTrue(patterns["iPhone"].search("DAS NEUE iPHONE 18 PRO"))
+        self.assertTrue(patterns["iPhone"].search("2 iPhones"))
+        self.assertTrue(patterns["PS5"].search("Gewinne eine PS5!"))
+        self.assertTrue(patterns["Apple Watch"].search("eine apple watch"))
+
+    def test_high_value_giveaways_are_listed_above_the_cutoff(self):
+        active, stats = self.run_pipeline(
+            ("Gewinnspiel! Kommentiert", 2, 10, 0),
+            ("Gewinnspiel! Kommentiert", 2, 20, 0),
+            ("iPhone 18 Gewinnspiel! Kommentiert", 2, 2000, 0),
+            ("Gewinnspiel! Kommentiert", 2, 3000, 0),
+            always_show_keywords=["iPhone"])
+        cfg = {**gf.DEFAULT_CONFIG, "always_show_keywords": ["iPhone"]}
+        cutoff = 30.0
+        selected = gf.select_giveaways(active, cutoff, cfg, {})
+        self.assertEqual([g["id"] for g in selected], ["1", "2", "3"])
+        report = gf.build_report(date(2026, 10, 27), stats, selected, cfg, cutoff, "the median", {})
+        self.assertIn("2 are at or below 30 competitors per prize - the median. "
+                      "Plus 1 high-value giveaway (💎) with worse odds.", report.summary)
+        self.assertIn("· 💎 iPhone ·", report.entries[2].title)
 
 
 def make_sample_items(now):

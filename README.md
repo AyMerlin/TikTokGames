@@ -6,7 +6,7 @@ You enter the giveaways yourself. The bot never comments, follows or likes anyth
 
 ```text
 🎁 TikTok giveaways - 27.10.2026
-41 active giveaways found (118 posts checked). 3 skipped because they're limited to other countries. 12 are at or below 227 competitors per prize - the cheapest 30% of 214 giveaways seen in the last 30 days.
+41 active giveaways found (118 posts checked). 3 skipped because they're limited to other countries. 19 are at or below 296 competitors per prize - the cheapest 50% of 214 giveaways seen in the last 30 days. Plus 1 high-value giveaway (💎) with worse odds.
 
 1. 🆕 @kerzenliebe ✔️ · 3 prizes · open to DE ✓
 ~82 competitors per prize (≈1 in 82) · 140 comments now · ends 02.11. · posted 1d ago
@@ -19,15 +19,16 @@ You enter the giveaways yourself. The bot never comments, follows or likes anyth
 Every day at 06:37 UTC (07:37 in Munich in winter, 08:37 in summer), the workflow runs the Apify [TikTok Scraper](https://apify.com/clockworks/tiktok-scraper) with a German proxy. It searches TikTok for the configured keywords (and hashtags, if you add any). `giveaway_finder.py` then processes each post:
 
 1. **Is it a giveaway?** The caption needs a giveaway word (Gewinnspiel, verlose, giveaway, …) *and* an entry action (kommentiert, folgt, markiert, …).
-2. **Is it still open?** Captions like "beendet" or "Gewinnerin steht fest" are dropped, as are posts with a deadline in the past, posts older than 14 days, and accounts with fewer than 200 followers.
+2. **Is it still open?** Captions like "beendet" or "Gewinnerin steht fest" are dropped, as are posts with a deadline in the past and accounts with fewer than 200 followers. Posts older than 14 days are dropped unless their deadline is still ahead.
 3. **Can you win from Germany?** A post is dropped only when its caption limits the giveaway to other countries ("nur für Österreich", "US only", 🇺🇸 only). Posts that don't mention a region stay in the list, because many German giveaways put their conditions in the bio.
-4. **How many people will enter?** Comments are the entry proxy. Young posts are projected forward to their deadline (or 7 days when there is none), since TikTok engagement is front-loaded: the share of lifetime comments after *t* hours is modelled as `1 - exp(-t / 36)`.
-5. **Competitors per prize** = projected comments ÷ number of prizes ("3x", "5 Gewinner", …).
-6. **Keep the cheapest 30%.** Scores from the last 30 days are stored in `state/history.json`. Only giveaways at or below the 30th percentile are listed, best odds first. With fewer than 10 scores in the history it uses the median instead.
+4. **How many people will enter?** Comments are the entry proxy. When a giveaway doesn't ask for a comment (only like and follow), likes are used instead, if there are more of them. Young posts are projected forward to their deadline (or 7 days when there is none), since TikTok engagement is front-loaded: the share of lifetime comments after *t* hours is modelled as `1 - exp(-t / 36)`.
+5. **Competitors per prize** = projected entries ÷ number of prizes ("3x", "5 Gewinner", "1 von 6", …; at most 20).
+6. **Keep the cheapest half.** Scores from the last 30 days are stored in `state/history.json`. Only giveaways at or below the 50th percentile (`percentile_cutoff`) are listed, best odds first. With fewer than 10 scores in the history it uses the median instead.
+7. **High-value prizes always show.** Giveaways that mention a word from `always_show_keywords` (iPhone, PS5, Reise, …) are listed with a 💎 even when their odds are worse. They usually end up at the bottom of the list.
 
 Posts are also flagged (not dropped) when they ask you to click a bio link, write to them by DM, move to WhatsApp or Telegram, pay fees or shipping, or mention crypto or gift cards. These are common scam patterns. "The winner will be notified by DM" is normal and not flagged.
 
-**The odds are estimates.** Comments are not people: some people comment several times, and some giveaways ask you to tag friends, with one comment per tag. The numbers are good for ranking giveaways against each other, not as exact probabilities. Always read each giveaway's rules (often in the bio) before you enter.
+**The odds are estimates.** Comments and likes are not people: some people comment several times, and some giveaways ask you to tag friends, with one comment per tag. The numbers are good for ranking giveaways against each other, not as exact probabilities. Always read each giveaway's rules (often in the bio) before you enter.
 
 ## Setup
 
@@ -108,7 +109,7 @@ Hashtags are off because hashtag pages show popular posts. That skews toward big
 
 ## Configuration
 
-Everything is tuned in `config.json`. Keys starting with `_` are comments. Missing keys fall back to built-in defaults, which match `config.json` except for `hashtags` and `results_per_seed` (the spec's 3 hashtags and 20 per seed, about $19 a month).
+Everything is tuned in `config.json`. Keys starting with `_` are comments. Missing keys fall back to built-in defaults, which match `config.json` except for `hashtags` and `results_per_seed` (the spec's 3 hashtags and 20 per seed, about $19 a month), `percentile_cutoff` (30) and `always_show_keywords` (none).
 
 | Key | `config.json` | Meaning |
 | --- | --- | --- |
@@ -121,16 +122,17 @@ Everything is tuned in `config.json`. Keys starting with `_` are comments. Missi
 | `apify_input_extra` | `{}` | Merged into the actor input last |
 | `max_cost_per_run_usd` | `0.5` | Hard spending cap per run (the actor's minimum) |
 | `monthly_budget_usd` | `null` | Skip runs that could push the Apify billing cycle past this; `null` = the plan's limit ($5 on Free) |
-| `max_age_days` | `14` | Ignore older posts |
+| `max_age_days` | `14` | Ignore older posts, unless their deadline is still ahead |
 | `assumed_duration_days` | `7` | Run time when no deadline is found |
 | `comment_decay_hours` | `36` | τ in the comment projection |
-| `percentile_cutoff` | `30` | Keep the cheapest X% |
+| `percentile_cutoff` | `50` | Keep the cheapest X% |
 | `hard_max_per_prize` | `null` | Optional fixed ceiling on competitors per prize |
 | `history_days` | `30` | Window of the statistics |
 | `min_history_for_percentile` | `10` | Below this many scores, use the median |
 | `min_author_followers` | `200` | Skip smaller accounts |
 | `max_list_length` | `30` | Maximum entries per list |
 | `only_new` | `false` | Only list posts never sent before |
+| `always_show_keywords` | iPhone, iPad, MacBook, AirPods, Apple Watch, PS5, PlayStation, Nintendo Switch, Xbox, Steam Deck, Dyson, Thermomix, E-Bike, Reise, Urlaub | Always list (💎) giveaways that mention one of these, whatever the odds; `[]` turns it off |
 
 ## Running locally
 
