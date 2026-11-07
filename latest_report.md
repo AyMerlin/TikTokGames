@@ -1,31 +1,31 @@
-# 🎁 TikTok giveaways - 06.11.2026
+# 🎁 TikTok giveaways - 07.11.2026
 
-15 active giveaways found (24 posts checked). 7 are at or below 292 competitors per prize - the cheapest 50% of 111 giveaways seen in the last 30 days.
+19 active giveaways found (24 posts checked). 5 are at or below 311 competitors per prize - the cheapest 50% of 124 giveaways seen in the last 30 days. Plus 2 high-value giveaways (💎) with worse odds.
 
-[1. 🆕 @blush\_parcel23 · 1 prize · region not stated](https://www.tiktok.com/@blush_parcel23/video/7703569185061784852)\
-~1 competitor per prize (≈1 in 1) · 0 comments now · no date found · posted 4d ago\
-*✨ GIVEAWAY TIME! ✨ (Exclusively for Students!) 🎓💖 We’re teaming up to give away amazing f…*
+[1. 🆕 @studierendenwerk.on · 1 prize · region not stated](https://www.tiktok.com/@studierendenwerk.on/video/7703944249422794017)\
+~16 competitors per prize (≈1 in 16) · 15 comments now · ends 10.11. · posted 3d ago\
+*Gewinne eine von fünf Goodie-Bags! 🥳✨🍀 Wie du im Lostopf landest? 👉1. Folge uns. 👉2. Komm…*
 
-[2. 🆕 @juliesge · 3 prizes · region not stated](https://www.tiktok.com/@juliesge/video/7704362796217093409)\
-~36 competitors per prize (≈1 in 36) · 77 comments now · ends 18.11. · posted 1d ago\
-*🎁 DAS GROSSE 12K-FOLLOWER-GEWINNSPIEL! 🎁 OMG, wir haben die 12.000 Follower geknackt! 😭❤️…*
+[2. @the.bitery · 1 prize · open to DE ✓](https://www.tiktok.com/@the.bitery/video/7703947242738044193)\
+~88 competitors per prize (≈1 in 88) · 84 comments now · ends 08.11. · posted 3d ago\
+*Birthday Giveaway! 🙌🫶 Wir feiern diese Woche Geburtstag und verlosen deshalb auch heute w…*
 
-[3. @tanjathann · 1 prize · open to DE ✓](https://www.tiktok.com/@tanjathann/video/7704355516365114656)\
-~40 competitors per prize (≈1 in 40) · 31 comments now · ends 08.11. · posted 1d ago\
-*Dies ist eine private Aktion und steht in keinem Zusammenhang mit Tiktok. Warum brauchst…*
+[3. 🆕 @mariaa\_\_alexx · 1 prize · open to DE ✓](https://www.tiktok.com/@mariaa__alexx/video/7704748109624036640)\
+~185 competitors per prize (≈1 in 185) · 130 comments now · ends 15.11. · posted 1d ago\
+*🎁 GEWINNSPIEL 🎁 Du möchtest dir die Vorweihnachtszeit mit ganz viel Beauty versüßen? Dann…*
 
-[4. 🆕 @sandy.brsk · 1 prize · region not stated](https://www.tiktok.com/@sandy.brsk/video/7704326735713668384)\
-~55 competitors per prize (≈1 in 55) · 41 comments now · ends 10.11. · posted 1d ago\
-*@ICRUSH Teilnahme: Folge mit und Icrush Like und kommentier dieses Video und markiere zwe…*
+[4. 🆕 @kaja.emiliv · 1 prize · region not stated](https://www.tiktok.com/@kaja.emiliv/video/7705090463191141664)\
+~199 competitors per prize (≈1 in 199) · 90 comments now · ends 13.11. · posted 21h ago\
+*Anzeige(alles selbstgekauft) 🎁Verlosung: NeeDoh Adventskalender. Teilnahme bis zum 13.11.…*
 
-[5. 🆕 @anastasia.samardzijaa · 1 prize · region not stated](https://www.tiktok.com/@anastasia.samardzijaa/video/7704637986612186401)\
-~95 competitors per prize (≈1 in 95) · 51 comments now · ends 30.11. · posted 1d ago\
-*🎁GIVEAWAY TIME - 1x 50 € Gutschein (Anzeige) Teilnahmebedingungen: 🩷 folge @teveo & mir 🩷…*
+[5. 🆕 @omggmerosh · 1 prize · region not stated](https://www.tiktok.com/@omggmerosh/video/7705119547392675105)\
+~253 competitors per prize (≈1 in 253) · 107 comments now · no date found · posted 19h ago\
+*Benefit Adventskalender Verlosung 😍🎄 um den zu gewinnen müsst ihr mir bei TikTok & Instag…*
 
-[6. @selinem\_ · 2 prizes · open to DE ✓](https://www.tiktok.com/@selinem_/video/7703981718914501920)\
-~102 competitors per prize (≈1 in 102) · 177 comments now · ends 10.11. · posted 2d ago\
-*Werbung \| Gewinnspiel in Kooperation mit @everywish.official 🎁🤍 Ich darf 2 × 50 € Wunschg…*
+[6. 🆕 @campdavid\_fashion ✔️ · 2 prizes · 💎 Reise · region not stated](https://www.tiktok.com/@campdavid_fashion/video/7705354046604922144)\
+~582 competitors per prize (≈1 in 582) · 133 comments now · ends 28.12. · posted 4h ago\
+*Einmal live im legendären Ally Pally in London dabei sein? 😍 Gemeinsam mit @Max Hopp verl…*
 
-[7. 🆕 @the.bitery · 1 prize · open to DE ✓](https://www.tiktok.com/@the.bitery/video/7704321188138437921)\
-~190 competitors per prize (≈1 in 190) · 97 comments now · ends 08.11. · posted 21h ago\
-*🎂🎁 Birthday Giveaway! Heute gibt’s wieder etwas zu gewinnen: eine Packung Double Chocolat…*
+[7. 🆕 @baierbierwolf2 · 1 prize · 💎 MacBook · region not stated](https://www.tiktok.com/@baierbierwolf2/video/7705151757550193952)\
+~18.939 competitors per prize (≈1 in 18.939) · 7.275 likes now (no comment needed) · ends 23.12. · posted 17h ago\
+*🎁 XXL GEWINNSPIEL beim Autohaus Baier & Bierwolf! 🚗✨ 3 MEGA Gewinne warten auf euch! 😍 💻…*
