@@ -1,47 +1,51 @@
-# 🎁 TikTok giveaways - 08.11.2026
+# 🎁 TikTok giveaways - 09.11.2026
 
-14 active giveaways found (24 posts checked). 9 are at or below 303 competitors per prize - the cheapest 50% of 131 giveaways seen in the last 30 days. Plus 2 high-value giveaways (💎) with worse odds.
+17 active giveaways found (24 posts checked). 10 are at or below 291 competitors per prize - the cheapest 50% of 141 giveaways seen in the last 30 days. Plus 2 high-value giveaways (💎) with worse odds.
 
-[1. 🆕 @julesstober · 1 prize · region not stated](https://www.tiktok.com/@julesstober/video/7705069044633816353)\
-~12 competitors per prize (≈1 in 12) · 9 comments now · ends 22.11. · posted 1d ago\
-*Teilnahmebedingungen für die Verlosung: - Folgt diesem Account und @mary&jules 🤍 🌸 - Mark…*
-
-[2. 🆕 @rab1a.bal · 1 prize · open to DE ✓](https://www.tiktok.com/@rab1a.bal/video/7705359632880995616)\
-~40 competitors per prize (≈1 in 40) · 22 comments now · ends 14.11. · posted 1d ago\
+[1. @rab1a.bal · 1 prize · open to DE ✓](https://www.tiktok.com/@rab1a.bal/video/7705359632880995616)\
+~39 competitors per prize (≈1 in 39) · 31 comments now · ends 14.11. · posted 2d ago\
 *🎀 GIVEAWAY TIME mit @icrush 🎀 Zusammen mit @icrush darf ich eine von euch glücklich mache…*
 
-[3. @sandy.brsk · 1 prize · region not stated](https://www.tiktok.com/@sandy.brsk/video/7704326735713668384)\
-~56 competitors per prize (≈1 in 56) · 53 comments now · ends 10.11. · posted 3d ago\
-*@ICRUSH Teilnahme: Folge mit und Icrush Like und kommentier dieses Video und markiere zwe…*
+[2. 🆕 @huedenn · 1 prize · open to DE ✓](https://www.tiktok.com/@huedenn/video/7705397174275804449)\
+~40 competitors per prize (≈1 in 40) · 31 comments now · ends 14.11. · posted 2d ago\
+*🍂✨ GIVEAWAY TIME mit @ICRUSH ! ✨ \|ad So könnt ihr teilnehmen: 1. Folgt meinem Account und…*
 
-[4. 🆕 @xtinafragrances · 7 prizes · region not stated](https://www.tiktok.com/@xtinafragrances/video/7704268491678928150)\
-~73 competitors per prize (≈1 in 73) · 480 comments now · no date found · posted 4d ago\
+[3. 🆕 @milena.else · 1 prize · open to DE ✓](https://www.tiktok.com/@milena.else/video/7705431532353146144)\
+~66 competitors per prize (≈1 in 66) · 50 comments now · ends 14.11. · posted 2d ago\
+*GIVEAWAY mit iCrush! 🥹🤍 Ich darf zusammen mit @ICRUSH ein wunderschönes kleines Schmuckse…*
+
+[4. 🆕 @helossch · 1 prize · open to DE ✓](https://www.tiktok.com/@helossch/video/7705558146525220116)\
+~68 competitors per prize (≈1 in 68) · 47 comments now · ends 29.11. · posted 1d ago\
+*Anzeige\| Verlosung\* So machst du mit: Folge mir und @ICRUSH -Like dieses Video -Markiere…*
+
+[5. @xtinafragrances · 7 prizes · region not stated](https://www.tiktok.com/@xtinafragrances/video/7704268491678928150)\
+~71 competitors per prize (≈1 in 71) · 488 comments now · no date found · posted 5d ago\
 *🌟GIVEAWAY🌟 Wir verlosen 7 von Christina Aguilera signierte Xtina After Dark Parfums 🤩 So…*
 
-[5. 🆕 @kiddolifts · 1 prize · region not stated](https://www.tiktok.com/@kiddolifts/video/7705749714527882529)\
-~84 competitors per prize (≈1 in 84) · 7 comments now · ends 15.11. · posted 3h ago\
-*✨GEWINNSPIEL: More-Paket im Wert von 200€✨ Danke an alle, die mit meinem Code KIDDO beste…*
+[6. 🆕 @kayatara.si · 1 prize · region not stated](https://www.tiktok.com/@kayatara.si/video/7705543252446907680)\
+~95 competitors per prize (≈1 in 95) · 67 likes now (no comment needed) · no date found · posted 1d ago\
+*Danke danke danke 🥹🖤🤟🏽 Um zu gewinnen müsst ihr einfach: - auf meinem TikTok Kanal folgen…*
 
-[6. 🆕 @lailaherceg · 2 prizes · region not stated](https://www.tiktok.com/@lailaherceg/video/7703959256625630496)\
-~115 competitors per prize (≈1 in 115) · 223 likes now (no comment needed) · no date found · posted 4d ago\
-*Es wurde Zeit für ein Gewinnspiel 💗🌟 Ich wünsche euch allen ganz viel Erfolg, bitte nehmt…*
+[7. 🆕 @maschneelie · 1 prize · region not stated](https://www.tiktok.com/@maschneelie/video/7706147055479082273)\
+~95 competitors per prize (≈1 in 95) · 11 comments now · ends 18.11. · posted 4h ago\
+*​✨ VERLOSUNG: Scoop-Adventskalender ✨ Als riesiges Dankeschön für euren unglaublichen Sup…*
 
-[7. @the.bitery · 1 prize · open to DE ✓](https://www.tiktok.com/@the.bitery/video/7704321188138437921)\
-~139 competitors per prize (≈1 in 139) · 134 comments now · ends 08.11. · posted 2d ago\
-*🎂🎁 Birthday Giveaway! Heute gibt’s wieder etwas zu gewinnen: eine Packung Double Chocolat…*
+[8. 🆕 @celine.4448 · 1 prize · open to DE ✓](https://www.tiktok.com/@celine.4448/video/7705526760561052960)\
+~101 competitors per prize (≈1 in 101) · 72 comments now · ends 23.11. · posted 1d ago\
+*🍁🦔🤎 GEWINNSPIEL 🤎🦔🍁 Gemeinsam mit @ICRUSH verlose ich ein wunderschönes Schmuckset! ✨ Und…*
 
-[8. @kaja.emiliv · 1 prize · region not stated](https://www.tiktok.com/@kaja.emiliv/video/7705090463191141664)\
-~163 competitors per prize (≈1 in 163) · 118 comments now · ends 13.11. · posted 1d ago\
+[9. 🆕 @evashiiii · 1 prize · region not stated](https://www.tiktok.com/@evashiiii/video/7706187460807626016)\
+~122 competitors per prize (≈1 in 122) · 6 comments now · ends 15.11. · posted 1h ago\
+*🖤 SO KÖNNT IHR TEILNEHMEN! 🦇 1. Folgt mir auf TikTok. 2. Folgt mir auf Twitch: Evashiiii.…*
+
+[10. @kaja.emiliv · 1 prize · region not stated](https://www.tiktok.com/@kaja.emiliv/video/7705090463191141664)\
+~160 competitors per prize (≈1 in 160) · 140 comments now · ends 13.11. · posted 3d ago\
 *Anzeige(alles selbstgekauft) 🎁Verlosung: NeeDoh Adventskalender. Teilnahme bis zum 13.11.…*
 
-[9. @mariaa\_\_alexx · 1 prize · open to DE ✓](https://www.tiktok.com/@mariaa__alexx/video/7704748109624036640)\
-~218 competitors per prize (≈1 in 218) · 185 comments now · ends 15.11. · posted 2d ago\
-*🎁 GEWINNSPIEL 🎁 Du möchtest dir die Vorweihnachtszeit mit ganz viel Beauty versüßen? Dann…*
-
-[10. 🆕 @smythstoys\_de ✔️ · 3 prizes · 💎 PS5 · region not stated](https://www.tiktok.com/@smythstoys_de/video/7704980681344011552)\
-~2.259 competitors per prize (≈1 in 2.259) · 5.249 comments now · ends 13.11. · posted 2d ago\
+[11. @smythstoys\_de ✔️ · 3 prizes · 💎 PS5 · region not stated](https://www.tiktok.com/@smythstoys_de/video/7704980681344011552)\
+~2.539 competitors per prize (≈1 in 2.539) · 6.831 comments now · ends 13.11. · posted 3d ago\
 *Gewinnt 1 von 3 PS5 Konsolen (Disc Edition)! 😍🔥 Passend zum bevorstehenden GTA6 Release h…*
 
-[11. @baierbierwolf2 · 1 prize · 💎 MacBook · region not stated](https://www.tiktok.com/@baierbierwolf2/video/7705151757550193952)\
-~15.438 competitors per prize (≈1 in 15.438) · 10.600 likes now (no comment needed) · ends 23.12. · posted 1d ago\
+[12. @baierbierwolf2 · 1 prize · 💎 MacBook · region not stated](https://www.tiktok.com/@baierbierwolf2/video/7705151757550193952)\
+~14.789 competitors per prize (≈1 in 14.789) · 12.600 likes now (no comment needed) · ends 23.12. · posted 2d ago\
 *🎁 XXL GEWINNSPIEL beim Autohaus Baier & Bierwolf! 🚗✨ 3 MEGA Gewinne warten auf euch! 😍 💻…*
